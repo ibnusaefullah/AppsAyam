@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blacksonic Farm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the app */
+        body, .font-google {
+            font-family: 'Roboto', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Dark mode styles */
+        .dark .bg-gray-100 { background-color: #000000; }
+        .dark .bg-white { background-color: #000000; }
+        .dark .text-gray-900 { color: #F5F5F5; }
+        .dark .text-gray-800 { color: #F5F5F5; }
+        .dark .text-gray-600 { color: #A8A8A8; }
+        .dark .text-gray-500 { color: #A8A8A8; }
+        .dark .border-b, .dark .border-t, .dark .border { border-color: #262626; }
+        .dark .border-gray-300 { border-color: #363636; }
+        .dark .placeholder-gray-400::placeholder { color: #777; }
+        .dark .bottom-nav { background-color: #000000; border-top-color: #262626; }
+        .dark .nav-item span { color: #A8A8A8; }
+        .dark .nav-item.active span { color: #FFFFFF; }
+        .dark .nav-item.active i { color: #FFFFFF; }
+        .dark .theme-toggle .fa-sun { display: block; }
+        .dark .theme-toggle .fa-moon { display: none; }
+        .dark .modal-content { background-color: #121212; }
+        .dark .input-field { background-color: #1c1c1c; border-color: #363636; }
+        
+        /* Light mode styles */
+        .theme-toggle .fa-sun { display: none; }
+        .theme-toggle .fa-moon { display: block; }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            height: 65px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 50;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #8e8e8e;
+        }
+        .nav-item i {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+        .nav-item.active span {
+            color: #000;
+            font-weight: 700;
+        }
+        .nav-item.active i {
+            color: #000;
+        }
+
+        .modal-container {
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .modal-container.visible {
+            pointer-events: auto;
+            opacity: 1;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: translateY(100%);
+        }
+        .modal-container.visible .modal-content {
+            transform: translateY(0);
+        }
+        
+        .input-field {
+             background-color: #FAFAFA;
+             border: 1px solid #DBDBDB;
+        }
+        
+        /* Grid Feed Styles */
+        .grid-feed {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+        }
+        .grid-item {
+            position: relative;
+            width: 100%;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            background-color: #e2e8f0;
+            cursor: pointer;
+        }
+        .grid-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-google">
+
+    <div class="app-container bg-white">
+        <!-- Top Header -->
+        <header id="mainHeader" class="flex items-center justify-between p-4 border-b">
+             <h1 class="text-3xl font-bold" style="font-family: 'Poppins', sans-serif;">
+                <span style="color: #4285F4;">B</span><span style="color: #EA4335;">l</span><span style="color: #FBBC05;">a</span><span style="color: #4285F4;">c</span><span style="color: #34A853;">k</span><span style="color: #EA4335;">s</span><span style="color: #FBBC05;">o</span><span style="color: #4285F4;">n</span><span style="color: #34A853;">i</span><span style="color: #EA4335;">c</span>
+            </h1>
+            <div class="flex items-center space-x-3">
+                 <button id="themeToggle" class="theme-toggle text-xl text-gray-800">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Feed View (Daftar Ayam) -->
+            <div id="feedView" class="main-view">
+                 <!-- Profile Header -->
+                <div class="p-4 border-b">
+                    <div class="flex items-center">
+                        <div class="w-20 h-20 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 mr-4"></div>
+                        <div class="grid grid-cols-3 gap-2 text-center w-full">
+                            <div><p id="postCount" class="font-bold text-lg text-gray-900">0</p><p class="text-sm text-gray-500">Postingan</p></div>
+                            <div><p id="jantanCount" class="font-bold text-lg text-gray-900">0</p><p class="text-sm text-gray-500">Jantan</p></div>
+                            <div><p id="betinaCount" class="font-bold text-lg text-gray-900">0</p><p class="text-sm text-gray-500">Betina</p></div>
+                        </div>
+                    </div>
+                    <div class="pt-4">
+                        <h2 class="font-bold text-gray-900">Peternak Pemula</h2>
+                        <p class="text-sm text-gray-600">Proyek Genetik Ayam Hias Blacksonic.</p>
+                    </div>
+                </div>
+                <div class="grid-feed" id="chickenGrid">
+                    <!-- Chicken grid items will be injected here -->
+                </div>
+            </div>
+
+            <!-- Search View -->
+            <div id="searchView" class="main-view hidden p-4">
+                <h2 class="text-xl font-bold mb-4 text-gray-900">Pencarian</h2>
+                <div class="relative mb-4">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Cari ID atau Nama Ayam..." class="w-full pl-10 p-2 input-field rounded-lg text-gray-900">
+                </div>
+                <button id="nfcScanButton" class="w-full flex items-center justify-center gap-2 bg-blue-500 text-white font-bold py-2.5 rounded-lg mb-4">
+                    <i class="fas fa-tag"></i> Pindai Tag
+                </button>
+                <div id="searchResults" class="space-y-2">
+                    <!-- Search results will be injected here -->
+                </div>
+            </div>
+
+            <!-- Logs View / Notifications -->
+            <div id="logsView" class="main-view hidden p-4">
+                <h2 class="text-xl font-bold mb-4 text-gray-900">Aktivitas</h2>
+                <div id="logList" class="space-y-3">
+                    <!-- Log items will be injected here -->
+                </div>
+            </div>
+             <!-- Profile View -->
+            <div id="profileView" class="main-view hidden p-4">
+                 <h2 class="text-xl font-bold mb-4 text-gray-900">Profil</h2>
+                 <p class="text-center text-gray-500">Halaman profil akan dikembangkan.</p>
+            </div>
+        </main>
+        
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav bg-white border-t">
+            <button id="navHome" onclick="showView('feedView', this)" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Beranda</span>
+            </button>
+            <button id="navSearch" onclick="showView('searchView', this)" class="nav-item">
+                <i class="fas fa-search"></i>
+                <span>Cari</span>
+            </button>
+            <button id="navAdd" onclick="openAddChickenModal()" class="nav-item">
+                <i class="far fa-plus-square" style="font-size: 28px;"></i>
+            </button>
+            <button id="navLogs" onclick="showView('logsView', this)" class="nav-item">
+                <i class="far fa-comment-dots"></i>
+                <span>Log</span>
+            </button>
+            <button id="navProfile" onclick="showView('profileView', this)" class="nav-item">
+                <i class="far fa-user"></i>
+                <span>Profil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div id="chickenModal" class="modal-container fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-end z-[60]">
+        <div class="modal-content bg-white rounded-t-2xl p-4 h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <h3 id="chickenModalTitle" class="text-lg font-bold text-gray-900">Tambah Ayam Baru</h3>
+                <button onclick="closeModal('chickenModal')" class="text-2xl text-gray-500">&times;</button>
+            </div>
+            <form id="chickenForm" class="flex-grow overflow-y-auto space-y-4 pr-2">
+                <input type="hidden" id="editChickenId">
+                <div>
+                    <label for="id_ayam" class="text-sm font-medium text-gray-600">ID Ayam</label>
+                    <input type="text" id="id_ayam" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" required>
+                </div>
+                <div>
+                    <label for="nama_panggilan" class="text-sm font-medium text-gray-600">Nama Panggilan</label>
+                    <input type="text" id="nama_panggilan" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="jenis_kelamin" class="text-sm font-medium text-gray-600">Kelamin</label>
+                        <select id="jenis_kelamin" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" required>
+                            <option value="Jantan">Jantan</option>
+                            <option value="Betina">Betina</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tanggal_tetas" class="text-sm font-medium text-gray-600">Tgl Tetas</label>
+                        <input type="date" id="tanggal_tetas" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" required>
+                    </div>
+                </div>
+                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_pejantan" class="text-sm font-medium text-gray-600">Pejantan (Sire)</label>
+                        <select id="id_pejantan" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900">
+                            <option value="">-- Tidak Diketahui --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="id_induk" class="text-sm font-medium text-gray-600">Induk (Dam)</label>
+                        <select id="id_induk" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900">
+                            <option value="">-- Tidak Diketahui --</option>
+                        </select>
+                    </div>
+                </div>
+                 <div>
+                    <label for="generasi" class="text-sm font-medium text-gray-600">Generasi</label>
+                    <input type="text" id="generasi" placeholder="e.g., F1, F2, Indukan" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" required>
+                </div>
+                <div>
+                    <label for="status" class="text-sm font-medium text-gray-600">Status</label>
+                    <select id="status" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" required>
+                        <option value="Aktif">Aktif</option>
+                        <option value="Terjual">Terjual</option>
+                        <option value="Mati">Mati</option>
+                    </select>
+                </div>
+            </form>
+            <div class="pt-4">
+                <button onclick="saveChicken()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logModal" class="modal-container fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-end z-[60]">
+        <div class="modal-content bg-white rounded-t-2xl p-4 h-[70vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <h3 class="text-lg font-bold text-gray-900">Tambah Catatan Harian</h3>
+                <button onclick="closeModal('logModal')" class="text-2xl text-gray-500">&times;</button>
+            </div>
+            <form id="logForm" class="flex-grow overflow-y-auto space-y-4 pr-2">
+                <input type="hidden" id="logChickenId">
+                <div>
+                    <label class="text-sm font-medium text-gray-600">Untuk Ayam</label>
+                    <p id="logForChickenName" class="font-bold text-lg text-gray-900"></p>
+                </div>
+                <div>
+                    <label for="log_tanggal" class="text-sm font-medium text-gray-600">Tanggal</label>
+                    <input type="date" id="log_tanggal" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" required>
+                </div>
+                <div>
+                    <label for="log_jenis" class="text-sm font-medium text-gray-600">Jenis Catatan</label>
+                    <select id="log_jenis" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" required>
+                        <option>Timbang</option>
+                        <option>Vaksin</option>
+                        <option>Telur</option>
+                        <option>Sakit</option>
+                        <option>Jual</option>
+                        <option>Lainnya</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="log_keterangan" class="text-sm font-medium text-gray-600">Keterangan / Nilai</label>
+                    <textarea id="log_keterangan" rows="3" class="mt-1 w-full input-field rounded-lg p-2 text-gray-900" placeholder="e.g., Bobot 750gr, Vaksin ND LaSota, dll."></textarea>
+                </div>
+            </form>
+             <div class="pt-4">
+                <button onclick="saveLog()" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition">Simpan Catatan</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="detailModal" class="modal-container fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-end z-[70]">
+        <div id="detailModalContent" class="modal-content bg-white rounded-t-2xl h-[95vh] flex flex-col">
+        </div>
+    </div>
+    
+    <div id="alertModal" class="modal-container fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+        <div class="bg-white dark:bg-[#2a2a2a] rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
+            <div id="alertIcon" class="text-5xl mb-4"></div>
+            <h3 id="alertTitle" class="text-lg font-bold text-gray-900"></h3>
+            <p id="alertMessage" class="text-sm text-gray-600 mt-2 mb-6"></p>
+            <button onclick="closeModal('alertModal')" class="w-full bg-blue-500 text-white font-bold py-2.5 rounded-lg">OK</button>
+        </div>
+    </div>
+
+
+<script>
+// --- DATABASE SIMULATION ---
+let daftarAyam = [
+    { id_ayam: 'PELUNG-01', nama_panggilan: 'Jago Pelung', jenis_kelamin: 'Jantan', tanggal_tetas: '2024-01-15', id_pejantan: '', id_induk: '', generasi: 'Indukan', status: 'Aktif' },
+    { id_ayam: 'CEMANI-01', nama_panggilan: 'Si Hitam', jenis_kelamin: 'Jantan', tanggal_tetas: '2024-02-01', id_pejantan: '', id_induk: '', generasi: 'Indukan', status: 'Aktif' },
+    { id_ayam: 'AUS-01', nama_panggilan: 'Betina Super', jenis_kelamin: 'Betina', tanggal_tetas: '2024-01-20', id_pejantan: '', id_induk: '', generasi: 'Indukan', status: 'Aktif' },
+    { id_ayam: 'AUS-02', nama_panggilan: 'Ratu Telur', jenis_kelamin: 'Betina', tanggal_tetas: '2024-01-20', id_pejantan: '', id_induk: '', generasi: 'Indukan', status: 'Aktif' },
+    { id_ayam: 'PA-01', nama_panggilan: 'Gagah', jenis_kelamin: 'Jantan', tanggal_tetas: '2024-08-10', id_pejantan: 'PELUNG-01', id_induk: 'AUS-01', generasi: 'F1', status: 'Aktif' },
+    { id_ayam: 'PA-02', nama_panggilan: 'Produktif', jenis_kelamin: 'Betina', tanggal_tetas: '2024-08-12', id_pejantan: 'PELUNG-01', id_induk: 'AUS-02', generasi: 'F1', status: 'Aktif' },
+    { id_ayam: 'PA-03', nama_panggilan: 'Harapan', jenis_kelamin: 'Betina', tanggal_tetas: '2024-08-12', id_pejantan: 'PELUNG-01', id_induk: 'AUS-02', generasi: 'F1', status: 'Aktif' },
+    { id_ayam: 'CPA-001', nama_panggilan: 'Legam', jenis_kelamin: 'Jantan', tanggal_tetas: '2025-02-15', id_pejantan: 'CEMANI-01', id_induk: 'PA-02', generasi: 'F2', status: 'Aktif' },
+    { id_ayam: 'CPA-002', nama_panggilan: 'Belang', jenis_kelamin: 'Betina', tanggal_tetas: '2025-02-15', id_pejantan: 'CEMANI-01', id_induk: 'PA-02', generasi: 'F2', status: 'Terjual' },
+    { id_ayam: 'CPA-003', nama_panggilan: 'Mutiara', jenis_kelamin: 'Betina', tanggal_tetas: '2025-02-17', id_pejantan: 'CEMANI-01', id_induk: 'PA-03', generasi: 'F2', status: 'Aktif' },
+];
+
+let catatanHarian = [
+    { id_catatan: 1, tanggal: '2024-03-01', id_ayam: 'AUS-01', jenis_catatan: 'Telur', keterangan: 'Mulai bertelur' },
+    { id_catatan: 2, tanggal: '2025-02-19', id_ayam: 'CPA-001', jenis_catatan: 'Vaksin', keterangan: 'Vaksin ND-IB Tetes Mata' },
+    { id_catatan: 3, tanggal: '2025-04-20', id_ayam: 'CPA-001', jenis_catatan: 'Timbang', keterangan: 'Bobot 650 gram' },
+    { id_catatan: 4, tanggal: '2025-06-10', id_ayam: 'CPA-002', jenis_catatan: 'Jual', keterangan: 'Terjual ke penghobi di Bandung, harga Rp 750.000' },
+    { id_catatan: 5, tanggal: '2025-06-15', id_ayam: 'CPA-003', jenis_catatan: 'Sakit', keterangan: 'Lesu, nafsu makan turun. Diberi jamu.' },
+];
+let nextLogId = 6;
+
+// --- THEME MANAGEMENT ---
+const themeToggle = document.getElementById('themeToggle');
+const htmlEl = document.documentElement;
+
+function setMode(mode) {
+    localStorage.setItem('theme', mode);
+    if (mode === 'dark') {
+        htmlEl.classList.add('dark');
+        htmlEl.classList.remove('light');
+    } else {
+        htmlEl.classList.add('light');
+        htmlEl.classList.remove('dark');
+    }
+}
+
+themeToggle.addEventListener('click', () => {
+    const currentMode = localStorage.getItem('theme') || 'light';
+    setMode(currentMode === 'dark' ? 'light' : 'dark');
+});
+
+// --- RENDER FUNCTIONS ---
+function renderChickenFeed(chickensToRender = daftarAyam) {
+    const feedContainer = document.getElementById('chickenGrid');
+    feedContainer.innerHTML = '';
+    const sortedChickens = [...chickensToRender].sort((a, b) => new Date(b.tanggal_tetas) - new Date(a.tanggal_tetas));
+    sortedChickens.forEach(ayam => {
+        const gridItem = document.createElement('div');
+        gridItem.className = 'grid-item';
+        gridItem.setAttribute('onclick', `viewChickenDetail('${ayam.id_ayam}')`);
+        const placeholderImg = `https://placehold.co/300x300/333/fff?text=${ayam.id_ayam}`;
+        
+        gridItem.innerHTML = `
+            <img src="${placeholderImg}" alt="Foto ${ayam.id_ayam}" loading="lazy">
+        `;
+        feedContainer.appendChild(gridItem);
+    });
+    
+    // Update profile stats
+    document.getElementById('postCount').textContent = daftarAyam.length;
+    document.getElementById('jantanCount').textContent = daftarAyam.filter(a => a.jenis_kelamin === 'Jantan' && a.status === 'Aktif').length;
+    document.getElementById('betinaCount').textContent = daftarAyam.filter(a => a.jenis_kelamin === 'Betina' && a.status === 'Aktif').length;
+}
+
+function renderLogList() {
+    const logContainer = document.getElementById('logList');
+    logContainer.innerHTML = '';
+    if (catatanHarian.length === 0) {
+        logContainer.innerHTML = `<p class="text-center text-gray-500 mt-8">Belum ada aktivitas.</p>`;
+        return;
+    }
+    const sortedLogs = [...catatanHarian].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+    sortedLogs.forEach(log => {
+        const logItem = document.createElement('div');
+        logItem.className = 'bg-gray-50 dark:bg-[#1c1c1c] p-3 rounded-lg flex items-center gap-3';
+        const icon = getLogIcon(log.jenis_catatan);
+        logItem.innerHTML = `
+            <i class="${icon} text-gray-500 text-xl w-6 text-center"></i>
+            <div>
+                <p class="text-sm text-gray-900"><b class="font-bold">${log.id_ayam}</b> - ${log.jenis_catatan}: ${log.keterangan || 'Tidak ada keterangan.'}</p>
+                <p class="text-xs text-gray-500 mt-1">${new Date(log.tanggal).toLocaleDateString('id-ID')}</p>
+            </div>
+        `;
+        logContainer.appendChild(logItem);
+    });
+}
+
+function renderSearchResults(query) {
+    const resultsContainer = document.getElementById('searchResults');
+    if (!query) {
+        resultsContainer.innerHTML = '<p class="text-center text-gray-500">Mulai ketik untuk mencari ayam.</p>';
+        return;
+    }
+    const lowerCaseQuery = query.toLowerCase();
+    const results = daftarAyam.filter(ayam => 
+        ayam.id_ayam.toLowerCase().includes(lowerCaseQuery) ||
+        (ayam.nama_panggilan && ayam.nama_panggilan.toLowerCase().includes(lowerCaseQuery))
+    );
+
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<p class="text-center text-gray-500">Ayam tidak ditemukan.</p>';
+        return;
+    }
+
+    resultsContainer.innerHTML = results.map(ayam => `
+        <div class="flex items-center p-2 bg-gray-50 dark:bg-[#1c1c1c] rounded-lg cursor-pointer" onclick="viewChickenDetail('${ayam.id_ayam}')">
+            <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center font-bold text-gray-500 dark:text-gray-300 mr-3 flex-shrink-0">
+                ${ayam.generasi.charAt(0)}
+            </div>
+            <div>
+                <p class="font-bold text-gray-900">${ayam.id_ayam}</p>
+                <p class="text-sm text-gray-500">${ayam.nama_panggilan || 'Tanpa Nama'}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getLogIcon(jenisCatatan) {
+    switch (jenisCatatan) {
+        case 'Timbang': return 'fas fa-weight-scale';
+        case 'Vaksin': return 'fas fa-syringe';
+        case 'Telur': return 'fas fa-egg';
+        case 'Sakit': return 'fas fa-notes-medical';
+        case 'Jual': return 'fas fa-hand-holding-usd';
+        default: return 'fas fa-clipboard-list';
+    }
+}
+
+// --- NAVIGATION & MODAL MANAGEMENT ---
+function showView(viewId, clickedButton) {
+    document.querySelectorAll('.main-view').forEach(view => view.classList.add('hidden'));
+    document.getElementById(viewId).classList.remove('hidden');
+    updateNavIcons(clickedButton.id);
+    document.getElementById('mainHeader').style.display = 'flex';
+}
+
+function updateNavIcons(activeButtonId) {
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.getElementById(activeButtonId).classList.add('active');
+}
+
+
+function openModal(modalId) { document.getElementById(modalId).classList.add('visible'); }
+function closeModal(modalId) { 
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('visible');
+    modal.addEventListener('transitionend', () => {
+        if (!modal.classList.contains('visible')) {
+            if (modalId === 'chickenModal') document.getElementById('chickenForm').reset();
+            if (modalId === 'logModal') document.getElementById('logForm').reset();
+        }
+    }, { once: true });
+}
+function showAlert(message, title = 'Peringatan', type = 'error') {
+    document.getElementById('alertMessage').textContent = message;
+    document.getElementById('alertTitle').textContent = title;
+    const iconEl = document.getElementById('alertIcon');
+    if (type === 'success') {
+        iconEl.innerHTML = `<i class="fas fa-check-circle text-green-500"></i>`;
+    } else {
+        iconEl.innerHTML = `<i class="fas fa-exclamation-triangle text-red-500"></i>`;
+    }
+    openModal('alertModal');
+}
+
+// --- MODAL TRIGGERS ---
+function openAddChickenModal() {
+    document.getElementById('chickenForm').reset();
+    document.getElementById('editChickenId').value = '';
+    document.getElementById('chickenModalTitle').textContent = 'Tambah Ayam Baru';
+    populateParentSelectors();
+    openModal('chickenModal');
+}
+
+function openEditChickenModal(id) {
+    const chicken = daftarAyam.find(a => a.id_ayam === id);
+    if (!chicken) return;
+    
+    document.getElementById('chickenModalTitle').textContent = 'Edit Data Ayam';
+    document.getElementById('editChickenId').value = chicken.id_ayam;
+    document.getElementById('id_ayam').value = chicken.id_ayam;
+    document.getElementById('nama_panggilan').value = chicken.nama_panggilan;
+    document.getElementById('jenis_kelamin').value = chicken.jenis_kelamin;
+    document.getElementById('tanggal_tetas').value = chicken.tanggal_tetas;
+    document.getElementById('generasi').value = chicken.generasi;
+    document.getElementById('status').value = chicken.status;
+    
+    populateParentSelectors();
+    document.getElementById('id_pejantan').value = chicken.id_pejantan;
+    document.getElementById('id_induk').value = chicken.id_induk;
+    
+    openModal('chickenModal');
+}
+
+function openLogModal(id) {
+    const chicken = daftarAyam.find(a => a.id_ayam === id);
+    if (!chicken) return;
+    document.getElementById('logForm').reset();
+    document.getElementById('logChickenId').value = id;
+    document.getElementById('logForChickenName').textContent = `${chicken.nama_panggilan || 'Ayam'} (${chicken.id_ayam})`;
+    document.getElementById('log_tanggal').valueAsDate = new Date();
+    openModal('logModal');
+}
+
+function openChickenMenu(id) {
+    const action = prompt(`Aksi untuk ${id}:\n1. Edit\n2. Hapus\n\nMasukkan nomor aksi:`);
+    if (action === '1') {
+        openEditChickenModal(id);
+    } else if (action === '2') {
+        if (confirm(`Yakin ingin menghapus ${id}? Semua catatannya juga akan terhapus.`)) {
+            deleteChicken(id);
+        }
+    }
+}
+
+// --- DATA MANIPULATION ---
+function saveChicken() {
+    const id = document.getElementById('editChickenId').value;
+    const newChicken = {
+        id_ayam: document.getElementById('id_ayam').value.trim().toUpperCase(),
+        nama_panggilan: document.getElementById('nama_panggilan').value.trim(),
+        jenis_kelamin: document.getElementById('jenis_kelamin').value,
+        tanggal_tetas: document.getElementById('tanggal_tetas').value,
+        id_pejantan: document.getElementById('id_pejantan').value,
+        id_induk: document.getElementById('id_induk').value,
+        generasi: document.getElementById('generasi').value.trim(),
+        status: document.getElementById('status').value
+    };
+
+    if (!newChicken.id_ayam || !newChicken.tanggal_tetas || !newChicken.generasi) {
+        showAlert('ID Ayam, Tanggal Tetas, dan Generasi wajib diisi.');
+        return;
+    }
+
+    if (id) {
+        const index = daftarAyam.findIndex(a => a.id_ayam === id);
+        if (newChicken.id_ayam !== id && daftarAyam.some(a => a.id_ayam === newChicken.id_ayam)) {
+            showAlert(`ID Ayam "${newChicken.id_ayam}" sudah ada.`);
+            return;
+        }
+        daftarAyam[index] = newChicken;
+    } else {
+        if (daftarAyam.some(a => a.id_ayam === newChicken.id_ayam)) {
+            showAlert(`ID Ayam "${newChicken.id_ayam}" sudah ada.`);
+            return;
+        }
+        daftarAyam.push(newChicken);
+    }
+    
+    renderAll();
+    closeModal('chickenModal');
+    showAlert('Data ayam berhasil disimpan.', 'Sukses', 'success');
+}
+
+function saveLog() {
+    const newLog = {
+        id_catatan: nextLogId++,
+        tanggal: document.getElementById('log_tanggal').value,
+        id_ayam: document.getElementById('logChickenId').value,
+        jenis_catatan: document.getElementById('log_jenis').value,
+        keterangan: document.getElementById('log_keterangan').value.trim()
+    };
+    if (!newLog.tanggal || !newLog.id_ayam) {
+        showAlert('Tanggal dan ID Ayam wajib diisi.');
+        return;
+    }
+    catatanHarian.push(newLog);
+    renderAll();
+    closeModal('logModal');
+    showAlert('Catatan berhasil disimpan.', 'Sukses', 'success');
+}
+
+function deleteChicken(id) {
+    daftarAyam = daftarAyam.filter(a => a.id_ayam !== id);
+    catatanHarian = catatanHarian.filter(l => l.id_ayam !== id);
+    renderAll();
+    showAlert(`Ayam dengan ID ${id} berhasil dihapus.`, 'Sukses', 'success');
+}
+
+function viewChickenDetail(id) {
+    const chicken = daftarAyam.find(a => a.id_ayam === id);
+    if (!chicken) return;
+    
+    const detailContainer = document.getElementById('detailModalContent');
+    const sire = daftarAyam.find(s => s.id_ayam === chicken.id_pejantan);
+    const dam = daftarAyam.find(d => d.id_ayam === chicken.id_induk);
+    const placeholderImg = `https://placehold.co/480x320/333/fff?text=${chicken.id_ayam}`;
+
+    let logsHtml = '';
+    const chickenLogs = catatanHarian.filter(log => log.id_ayam === id).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+    if (chickenLogs.length > 0) {
+        logsHtml = chickenLogs.map(log => `
+            <div class="py-3 border-b">
+                <div class="flex justify-between items-center">
+                    <p class="font-semibold text-gray-900">${log.jenis_catatan}</p>
+                    <p class="text-xs text-gray-500">${new Date(log.tanggal).toLocaleDateString('id-ID')}</p>
+                </div>
+                <p class="text-sm text-gray-600">${log.keterangan}</p>
+            </div>
+        `).join('');
+    } else {
+        logsHtml = '<p class="text-center text-gray-500 py-8">Belum ada riwayat untuk ayam ini.</p>';
+    }
+
+    detailContainer.innerHTML = `
+        <header class="flex items-center p-4 border-b">
+            <button onclick="closeModal('detailModal')" class="text-2xl mr-4 text-gray-800"><i class="fas fa-arrow-left"></i></button>
+            <div>
+                <h3 class="font-bold text-gray-900">${chicken.id_ayam}</h3>
+                <p class="text-sm text-gray-500">Profil Lengkap</p>
+            </div>
+        </header>
+        <div class="flex-grow overflow-y-auto">
+            <div class="p-4 flex items-center">
+                <div class="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-600 flex-shrink-0 mr-4 overflow-hidden">
+                     <img src="${placeholderImg}" class="w-full h-full object-cover" alt="Foto ${chicken.id_ayam}">
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center w-full">
+                    <div><p class="font-bold text-lg text-gray-900">${chickenLogs.length}</p><p class="text-sm text-gray-500">Catatan</p></div>
+                    <div><p class="font-bold text-lg text-gray-900">${sire ? '1' : '0'}</p><p class="text-sm text-gray-500">Pejantan</p></div>
+                    <div><p class="font-bold text-lg text-gray-900">${dam ? '1' : '0'}</p><p class="text-sm text-gray-500">Indukan</p></div>
+                </div>
+            </div>
+            <div class="px-4 pb-4">
+                <h4 class="font-bold text-gray-900">${chicken.nama_panggilan || 'Tanpa Nama'}</h4>
+                <p class="text-sm text-gray-600">Generasi ${chicken.generasi} | ${chicken.jenis_kelamin}</p>
+                <p class="text-sm text-gray-600">Lahir: ${new Date(chicken.tanggal_tetas).toLocaleDateString('id-ID')}</p>
+                <p class="text-sm text-gray-600">Pejantan: ${sire ? sire.id_ayam : 'N/A'}</p>
+                <p class="text-sm text-gray-600">Indukan: ${dam ? dam.id_ayam : 'N/A'}</p>
+            </div>
+            <div class="border-t px-4">
+                <h4 class="font-bold text-gray-900 pt-4 mb-2">Riwayat Catatan</h4>
+                ${logsHtml}
+            </div>
+        </div>
+    `;
+    openModal('detailModal');
+}
+
+// --- UTILITY FUNCTIONS ---
+function populateParentSelectors() {
+    const sireSelect = document.getElementById('id_pejantan');
+    const damSelect = document.getElementById('id_induk');
+    const currentSireVal = sireSelect.value;
+    const currentDamVal = damSelect.value;
+    sireSelect.innerHTML = '<option value="">-- Tidak Diketahui --</option>';
+    damSelect.innerHTML = '<option value="">-- Tidak Diketahui --</option>';
+    daftarAyam.filter(a => a.jenis_kelamin === 'Jantan' && a.status === 'Aktif').forEach(jantan => {
+        sireSelect.innerHTML += `<option value="${jantan.id_ayam}">${jantan.nama_panggilan || jantan.id_ayam}</option>`;
+    });
+    daftarAyam.filter(a => a.jenis_kelamin === 'Betina' && a.status === 'Aktif').forEach(betina => {
+        damSelect.innerHTML += `<option value="${betina.id_ayam}">${betina.nama_panggilan || betina.id_ayam}</option>`;
+    });
+    sireSelect.value = currentSireVal;
+    damSelect.value = currentDamVal;
+}
+
+// --- INITIALIZATION ---
+function renderAll() {
+    renderChickenFeed();
+    renderLogList();
+    populateParentSelectors();
+}
+
+window.onload = function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setMode(savedTheme);
+    showView('feedView', document.getElementById('navHome'));
+    renderAll();
+    renderSearchResults(''); // Initial empty state for search
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        renderSearchResults(e.target.value);
+    });
+
+    document.getElementById('nfcScanButton').addEventListener('click', () => {
+        const idToScan = prompt("Simulasi Pindai Tag NFC:\nMasukkan ID Ayam (e.g., CPA-001):");
+        if (idToScan) {
+            const chicken = daftarAyam.find(a => a.id_ayam.toUpperCase() === idToScan.trim().toUpperCase());
+            if (chicken) {
+                viewChickenDetail(chicken.id_ayam);
+            } else {
+                showAlert(`Ayam dengan ID "${idToScan}" tidak ditemukan.`);
+            }
+        }
+    });
+};
+</script>
+
+</body>
+</html>
