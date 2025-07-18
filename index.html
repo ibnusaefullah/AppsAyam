@@ -133,6 +133,103 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /* Silsilah (Pedigree) Styles */
+        .pedigree-chart {
+            display: flex;
+            justify-content: flex-start;
+            text-align: center;
+            overflow-x: auto;
+            padding: 1.5rem 1rem;
+            white-space: nowrap;
+        }
+        .pedigree-chart ul {
+            padding-left: 0;
+            margin: 0;
+            position: relative;
+        }
+        .pedigree-chart li {
+            list-style-type: none;
+            text-align: center;
+            position: relative;
+            padding: 20px 10px 0 10px;
+        }
+        .pedigree-chart li::before, .pedigree-chart li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px dashed #cbd5e1;
+            width: 50%;
+            height: 20px;
+        }
+        .pedigree-chart li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px dashed #cbd5e1;
+        }
+        .pedigree-chart li:only-child::after, .pedigree-chart li:only-child::before {
+            display: none;
+        }
+        .pedigree-chart li:first-child::before, .pedigree-chart li:last-child::after {
+            border: 0 none;
+        }
+        .pedigree-chart li:last-child::before {
+            border-right: 2px dashed #cbd5e1;
+            border-radius: 0 8px 0 0;
+        }
+        .pedigree-chart li:first-child::after {
+            border-radius: 8px 0 0 0;
+        }
+        .pedigree-chart ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px dashed #cbd5e1;
+            width: 0;
+            height: 20px;
+        }
+        .pedigree-chart li .node {
+            padding: 12px;
+            border: 2px solid;
+            background: #fff;
+            border-radius: 50%;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 90px;
+            height: 90px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .dark .pedigree-chart li .node {
+            background: #2d3748;
+        }
+        .node-jantan { border-color: #60a5fa; }
+        .node-betina { border-color: #f472b6; }
+        .node-unknown { border-color: #9ca3af; }
+
+        .pedigree-chart .node i {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+        .node-icon-jantan { color: #60a5fa; }
+        .node-icon-betina { color: #f472b6; }
+        .node-icon-unknown { color: #9ca3af; }
+
+        .pedigree-chart .node-name {
+            font-weight: bold;
+            font-size: 0.8em;
+            line-height: 1.2;
+        }
+        .pedigree-chart .node-gen {
+            font-size: 0.7em;
+            color: #65676B;
+        }
+        .dark .pedigree-chart .node-gen {
+            color: #B0B3B8;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-google">
@@ -331,6 +428,20 @@
     
     <div id="detailModal" class="modal-container fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-end z-[70]">
         <div id="detailModalContent" class="modal-content bg-white rounded-t-2xl h-[95vh] flex flex-col">
+        </div>
+    </div>
+    
+    <div id="silsilahModal" class="modal-container fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-end z-[80]">
+        <div class="modal-content bg-white rounded-t-2xl h-[95vh] flex flex-col">
+             <header class="flex items-center p-4 border-b sticky top-0 bg-white dark:bg-gray-800">
+                <button onclick="closeModal('silsilahModal')" class="text-2xl mr-4 text-gray-800"><i class="fas fa-arrow-left"></i></button>
+                <div>
+                    <h3 class="font-bold text-gray-900">Silsilah Keturunan</h3>
+                </div>
+            </header>
+            <div id="silsilahContent" class="flex-grow overflow-auto">
+                <!-- Pedigree chart will be injected here -->
+            </div>
         </div>
     </div>
     
@@ -628,6 +739,44 @@ function deleteChicken(id) {
     showAlert(`Ayam dengan ID ${id} berhasil dihapus.`, 'Sukses', 'success');
 }
 
+function viewSilsilah(id) {
+    const buildPedigree = (chickenId) => {
+        if (!chickenId) {
+            return `<li><div class="node node-unknown"><i class="fas fa-question node-icon-unknown"></i><div class="node-name">Tidak Ada</div></div></li>`;
+        }
+        const chicken = daftarAyam.find(c => c.id_ayam === chickenId);
+        if (!chicken) {
+            return `<li><div class="node node-unknown"><i class="fas fa-ghost node-icon-unknown"></i><div class="node-name">${chickenId}*</div><div class="node-gen">Data Hilang</div></div></li>`;
+        }
+        
+        let parentsHtml = '';
+        if (chicken.id_pejantan || chicken.id_induk) {
+            parentsHtml = `<ul>
+                ${buildPedigree(chicken.id_pejantan)}
+                ${buildPedigree(chicken.id_induk)}
+            </ul>`;
+        }
+        
+        const genderClass = chicken.jenis_kelamin === 'Jantan' ? 'node-jantan' : 'node-betina';
+        const genderIcon = chicken.jenis_kelamin === 'Jantan' ? 'fa-mars' : 'fa-venus';
+        const genderIconClass = chicken.jenis_kelamin === 'Jantan' ? 'node-icon-jantan' : 'node-icon-betina';
+
+        return `<li>
+                    <div class="node ${genderClass}">
+                        <i class="fas ${genderIcon} ${genderIconClass}"></i>
+                        <div class="node-name">${chicken.nama_panggilan || chicken.id_ayam}</div>
+                        <div class="node-gen">${chicken.generasi}</div>
+                    </div>
+                    ${parentsHtml}
+                </li>`;
+    };
+
+    const silsilahContainer = document.getElementById('silsilahContent');
+    silsilahContainer.innerHTML = `<div class="pedigree-chart">${buildPedigree(id)}</div>`;
+    openModal('silsilahModal');
+}
+
+
 function viewChickenDetail(id) {
     const chicken = daftarAyam.find(a => a.id_ayam === id);
     if (!chicken) return;
@@ -678,6 +827,7 @@ function viewChickenDetail(id) {
                 <p class="text-sm text-gray-600">Lahir: ${new Date(chicken.tanggal_tetas).toLocaleDateString('id-ID')}</p>
                 <p class="text-sm text-gray-600">Pejantan: ${sire ? sire.id_ayam : 'N/A'}</p>
                 <p class="text-sm text-gray-600">Indukan: ${dam ? dam.id_ayam : 'N/A'}</p>
+                <button onclick="viewSilsilah('${id}')" class="mt-2 w-full text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 font-bold py-2 rounded-lg">Lihat Silsilah</button>
             </div>
             <div class="border-t px-4">
                 <h4 class="font-bold text-gray-900 pt-4 mb-2">Riwayat Catatan</h4>
